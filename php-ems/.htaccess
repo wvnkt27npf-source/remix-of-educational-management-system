@@ -1,0 +1,41 @@
+# Enable Rewrite Engine
+RewriteEngine On
+
+# Set base directory (adjust if installed in subdirectory)
+# RewriteBase /php-ems/
+
+# Remove .php extension
+# Redirect /file.php to /file (except index.php)
+RewriteCond %{THE_REQUEST} \s/([^.]+)\.php[\s?] [NC]
+RewriteCond %{REQUEST_URI} !^/index\.php$ [NC]
+RewriteRule ^ /%1 [R=301,L,NE]
+
+# Serve .php file when extension is omitted
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# Block access to data directory
+RewriteRule ^data/ - [F,L]
+
+# Prevent directory listing
+Options -Indexes
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Deny access to sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+<FilesMatch "\.(csv|ini|log|sh|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
