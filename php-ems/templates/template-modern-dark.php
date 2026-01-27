@@ -2281,9 +2281,7 @@ require_once __DIR__ . '/partials/data-loader.php';
         position: fixed;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
-        width: 100vw;
+        width: 100%;
         height: 100vh;
         height: 100dvh;
         background: #ffffff;
@@ -2294,10 +2292,12 @@ require_once __DIR__ . '/partials/data-loader.php';
         z-index: 1001;
         gap: 10px;
         overflow-y: auto;
+        overflow-x: hidden;
         transform: translateY(-100%);
         opacity: 0;
         pointer-events: none;
         transition: transform 0.35s ease, opacity 0.35s ease;
+        box-sizing: border-box;
       }
       
       .nav-links.active { 
