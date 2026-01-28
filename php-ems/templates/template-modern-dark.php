@@ -46,7 +46,7 @@ require_once __DIR__ . '/partials/data-loader.php';
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; overflow-x: hidden; }
     
     body {
       font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -54,6 +54,7 @@ require_once __DIR__ . '/partials/data-loader.php';
       color: var(--text);
       line-height: 1.7;
       overflow-x: hidden;
+      max-width: 100vw;
     }
     
     h1, h2, h3, .display-font { font-family: 'Playfair Display', serif; color: var(--dark); }
@@ -290,6 +291,12 @@ require_once __DIR__ . '/partials/data-loader.php';
       overflow: hidden;
     }
     
+    /* When slider is present, adjust hero padding */
+    .hero-slider-wrapper + .hero-premium {
+      padding-top: 100px;
+      min-height: auto;
+    }
+
     /* Video Background Container */
     .hero-video-bg {
       position: absolute;
