@@ -204,7 +204,7 @@ foreach ($defaultSettings as $ds) {
     $group = $ds['group'];
     
     // Get value from saved settings, or use default
-    $value = isset($settingsByKey[$key]) ? $settingsByKey[$key]['value'] : $ds['value'];
+    $value = isset($settingsByKey[$key]) ? trim($settingsByKey[$key]['value']) : $ds['value'];
     $id = isset($settingsByKey[$key]) ? $settingsByKey[$key]['id'] : '';
     
     if (!isset($settingsByGroup[$group])) {
@@ -404,19 +404,20 @@ $content = function () use ($groups, $settingsByGroup) {
                                 'accent' => '#8b5cf6'
                             ],
                         ];
+                        $currentTemplate = trim($setting['value']);
                         ?>
                         <div class="row g-3 mt-2">
                           <?php foreach ($templates as $key => $tpl): ?>
                           <div class="col-6 col-md-4 col-xl">
-                            <label class="template-card <?= $setting['value'] === $key ? 'active' : '' ?>" style="cursor:pointer;display:block;border:2px solid <?= $setting['value'] === $key ? 'var(--brand)' : 'rgba(255,255,255,.1)' ?>;border-radius:16px;padding:12px;text-align:center;transition:all 0.3s;background:rgba(255,255,255,.02);">
-                              <input type="radio" name="setting_<?= e($setting['key']) ?>" value="<?= e($key) ?>" <?= $setting['value'] === $key ? 'checked' : '' ?> style="display:none;">
+                            <label class="template-card <?= $currentTemplate === $key ? 'active' : '' ?>" style="cursor:pointer;display:block;border:2px solid <?= $currentTemplate === $key ? 'var(--brand)' : 'rgba(255,255,255,.1)' ?>;border-radius:16px;padding:12px;text-align:center;transition:all 0.3s;background:rgba(255,255,255,.02);">
+                              <input type="radio" name="setting_<?= e($setting['key']) ?>" value="<?= e($key) ?>" <?= $currentTemplate === $key ? 'checked' : '' ?> style="display:none;">
                               <div style="width:100%;height:70px;background:<?= $tpl['preview'] ?>;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
                                 <span style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));"><?= $tpl['icon'] ?></span>
                                 <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:<?= $tpl['accent'] ?>;"></div>
                               </div>
                               <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;"><?= e($tpl['name']) ?></div>
                               <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.3;"><?= e($tpl['desc']) ?></div>
-                              <?php if ($setting['value'] === $key): ?>
+                              <?php if ($currentTemplate === $key): ?>
                               <span class="badge bg-success mt-2" style="font-size:0.65rem;">Active</span>
                               <?php endif; ?>
                             </label>
