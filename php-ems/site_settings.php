@@ -78,7 +78,13 @@ if (empty($existingSettings)) {
     $existingSettings = csv_read_all($settingsFile);
 }
 
-// Add missing settings (for upgrades)
+// Build lookup for default settings by key
+$defaultsByKey = [];
+foreach ($defaultSettings as $ds) {
+    $defaultsByKey[$ds['key']] = $ds;
+}
+
+// Add missing settings and fix group/type/label for existing ones
 $existingKeys = array_column($existingSettings, 'key');
 foreach ($defaultSettings as $setting) {
     if (!in_array($setting['key'], $existingKeys, true)) {
@@ -91,6 +97,22 @@ $deprecatedKeys = ['primary_color', 'secondary_color', 'accent_color'];
 foreach ($existingSettings as $s) {
     if (in_array($s['key'], $deprecatedKeys, true)) {
         csv_delete_by_id($settingsFile, $s['id']);
+    }
+}
+
+// Fix existing settings to have correct group/type/label from defaults
+$existingSettings = csv_read_all($settingsFile);
+foreach ($existingSettings as $s) {
+    if (isset($defaultsByKey[$s['key']])) {
+        $def = $defaultsByKey[$s['key']];
+        // If group, type or label is wrong, fix it
+        if ($s['group'] !== $def['group'] || $s['type'] !== $def['type'] || $s['label'] !== $def['label']) {
+            csv_update_by_id($settingsFile, $s['id'], [
+                'group' => $def['group'],
+                'type' => $def['type'],
+                'label' => $def['label']
+            ]);
+        }
     }
 }
 
@@ -175,23 +197,28 @@ $groups = [
     'system' => ['title' => 'System Settings', 'icon' => 'bi-gear'],
 ];
 
+// Build settings by group using defaultSettings as source of truth for grouping
 $settingsByGroup = [];
-// Only include settings that belong to known groups and have valid keys
-$knownKeys = array_column($defaultSettings, 'key');
-foreach ($settings as $s) {
-    // Skip settings that aren't in our default list (cleanup old/invalid entries)
-    if (!in_array($s['key'], $knownKeys, true)) {
-        continue;
-    }
-    $group = $s['group'] ?? 'basic';
-    // Only add to known groups
-    if (!isset($groups[$group])) {
-        $group = 'basic';
-    }
+foreach ($defaultSettings as $ds) {
+    $key = $ds['key'];
+    $group = $ds['group'];
+    
+    // Get value from saved settings, or use default
+    $value = isset($settingsByKey[$key]) ? $settingsByKey[$key]['value'] : $ds['value'];
+    $id = isset($settingsByKey[$key]) ? $settingsByKey[$key]['id'] : '';
+    
     if (!isset($settingsByGroup[$group])) {
         $settingsByGroup[$group] = [];
     }
-    $settingsByGroup[$group][] = $s;
+    
+    $settingsByGroup[$group][] = [
+        'id' => $id,
+        'key' => $key,
+        'value' => $value,
+        'type' => $ds['type'],
+        'label' => $ds['label'],
+        'group' => $group
+    ];
 }
 
 $title = 'Site Settings';
