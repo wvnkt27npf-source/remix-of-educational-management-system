@@ -34,7 +34,7 @@ require_once __DIR__ . '/partials/data-loader.php';
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; overflow-x: hidden; }
     
     body {
       font-family: 'Quicksand', sans-serif;
@@ -42,6 +42,12 @@ require_once __DIR__ . '/partials/data-loader.php';
       color: var(--text);
       line-height: 1.8;
       overflow-x: hidden;
+      max-width: 100vw;
+    }
+    
+    /* Slider adjustment for hero section */
+    .hero-slider-wrapper + .hero-fun {
+      padding-top: 80px;
     }
     
     h1, h2, h3, h4, h5 { font-family: 'Baloo 2', cursive; font-weight: 700; color: var(--dark); }
