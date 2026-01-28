@@ -78,6 +78,28 @@ if (empty($existingSettings)) {
     $existingSettings = csv_read_all($settingsFile);
 }
 
+// Ensure there is only one row for the site template setting (older installs may have duplicates)
+$templateRows = [];
+foreach ($existingSettings as $row) {
+    if (($row['key'] ?? '') === 'site_template') {
+        $templateRows[] = $row;
+    }
+}
+if (count($templateRows) > 1) {
+    // Keep the newest row (highest numeric id) and delete the rest
+    usort($templateRows, function ($a, $b) {
+        return (int)($b['id'] ?? 0) <=> (int)($a['id'] ?? 0);
+    });
+    $keepId = $templateRows[0]['id'];
+    foreach ($templateRows as $idx => $row) {
+        if ($idx === 0) continue;
+        if (!empty($row['id'])) {
+            csv_delete_by_id($settingsFile, $row['id']);
+        }
+    }
+    $existingSettings = csv_read_all($settingsFile);
+}
+
 // Build lookup for default settings by key
 $defaultsByKey = [];
 foreach ($defaultSettings as $ds) {
