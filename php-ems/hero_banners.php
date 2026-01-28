@@ -347,8 +347,8 @@ $content = function() use ($banners, $sliderEnabled) {
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-1">Hero Banner Slider</h4>
-        <p class="text-muted mb-0">Upload banner images for your landing page slider</p>
+        <h4 class="mb-1 text-white">Hero Banner Slider</h4>
+        <p class="mb-0" style="color: rgba(255,255,255,.6);">Upload banner images for your landing page slider</p>
     </div>
 </div>
 
@@ -356,11 +356,11 @@ $content = function() use ($banners, $sliderEnabled) {
 <div class="slider-toggle-card <?= $sliderEnabled ? 'enabled' : 'disabled' ?>">
     <div class="d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="mb-1">
+            <h5 class="mb-1 text-white">
                 <i class="bi bi-<?= $sliderEnabled ? 'check-circle text-success' : 'x-circle text-danger' ?> me-2"></i>
                 Banner Slider is <?= $sliderEnabled ? 'Enabled' : 'Disabled' ?>
             </h5>
-            <p class="text-muted mb-0">
+            <p class="mb-0" style="color: rgba(255,255,255,.6);">
                 <?= $sliderEnabled 
                     ? 'Banner slider is showing on all landing page templates.' 
                     : 'Enable to show banner slider at the top of your landing page.' ?>
@@ -379,8 +379,8 @@ $content = function() use ($banners, $sliderEnabled) {
 <!-- Upload Zone -->
 <div class="upload-zone mb-4" onclick="document.getElementById('imageInput').click();" id="uploadZone">
     <i class="bi bi-cloud-arrow-up upload-icon"></i>
-    <h5>Click to Upload or Drag & Drop</h5>
-    <p class="text-muted mb-0">JPG, PNG, GIF, WEBP • Recommended size: 1920 x 600 px</p>
+    <h5 class="text-white">Click to Upload or Drag & Drop</h5>
+    <p class="mb-0" style="color: rgba(255,255,255,.6);">JPG, PNG, GIF, WEBP • Recommended size: 1920 x 600 px</p>
 </div>
 
 <form method="post" enctype="multipart/form-data" id="uploadForm" style="display: none;">
@@ -398,11 +398,11 @@ $content = function() use ($banners, $sliderEnabled) {
 <?php else: ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0">
+    <h6 class="mb-0 text-white">
         <i class="bi bi-images me-2"></i>
         <?= count($banners) ?> Banner<?= count($banners) > 1 ? 's' : '' ?>
     </h6>
-    <small class="text-muted">
+    <small style="color: rgba(255,255,255,.6);">
         <i class="bi bi-grip-vertical me-1"></i>Drag to reorder
     </small>
 </div>
