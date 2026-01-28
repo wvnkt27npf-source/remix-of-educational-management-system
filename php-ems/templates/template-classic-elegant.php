@@ -1043,23 +1043,84 @@ require_once __DIR__ . '/partials/data-loader.php';
       </div>
       
       <div class="news-grid">
-        <?php foreach (array_slice($newsArticles, 0, 3) as $news): ?>
-        <div class="news-card">
+        <?php foreach ($newsArticles as $index => $news): 
+          if ($news['status'] !== 'published') continue;
+        ?>
+        <div class="news-card" onclick="openNewsModal(<?= $index ?>)" style="cursor: pointer;">
           <?php if (!empty($news['image'])): ?>
             <img src="<?= e($news['image']) ?>" alt="<?= e($news['title']) ?>" class="news-card-image">
           <?php else: ?>
-            <div class="news-card-image"></div>
+            <div class="news-card-image" style="display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-newspaper" style="font-size: 48px; color: var(--gold); opacity: 0.5;"></i>
+            </div>
           <?php endif; ?>
           <div class="news-card-body">
-            <div class="news-card-date"><?= e(!empty($news['date']) ? date('M d, Y', strtotime($news['date'])) : '') ?></div>
+            <div class="news-card-date"><i class="bi bi-calendar3 me-1"></i><?= e(!empty($news['date']) ? date('M d, Y', strtotime($news['date'])) : '') ?></div>
             <h4><?= e($news['title']) ?></h4>
-            <p><?= e(substr(strip_tags($news['content']), 0, 100)) ?>...</p>
+            <p><?= e(substr(strip_tags($news['content']), 0, 150)) ?>...</p>
+            <span class="news-read-more" style="color: var(--saffron); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;">
+              Read More <i class="bi bi-arrow-right"></i>
+            </span>
           </div>
         </div>
         <?php endforeach; ?>
       </div>
     </div>
   </section>
+  
+  <!-- News Modal -->
+  <div class="news-modal-overlay" id="newsModalOverlay" onclick="closeNewsModal()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 9999; padding: 20px; overflow-y: auto;">
+    <div class="news-modal" onclick="event.stopPropagation()" style="max-width: 800px; margin: 40px auto; background: var(--ivory); border-radius: 20px; overflow: hidden; animation: modalFadeIn 0.3s ease;">
+      <button onclick="closeNewsModal()" style="position: absolute; top: 15px; right: 15px; background: var(--maroon); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10;">
+        <i class="bi bi-x-lg"></i>
+      </button>
+      <div id="newsModalImage" style="width: 100%; height: 300px; object-fit: cover; background: linear-gradient(135deg, var(--saffron), var(--gold));"></div>
+      <div style="padding: 35px;">
+        <div id="newsModalDate" style="color: var(--saffron); font-weight: 600; font-size: 0.9rem; margin-bottom: 10px;"></div>
+        <h3 id="newsModalTitle" style="font-size: 1.8rem; margin-bottom: 20px; color: var(--maroon);"></h3>
+        <div id="newsModalContent" style="color: var(--text); line-height: 1.9; font-size: 1rem; white-space: pre-line;"></div>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    @keyframes modalFadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .news-modal { position: relative; }
+  </style>
+  
+  <script>
+    const newsData = <?= json_encode(array_values(array_filter($newsArticles, function($n) { return $n['status'] === 'published'; }))) ?>;
+    
+    function openNewsModal(index) {
+      const news = newsData[index];
+      if (!news) return;
+      
+      const overlay = document.getElementById('newsModalOverlay');
+      const imgDiv = document.getElementById('newsModalImage');
+      
+      if (news.image) {
+        imgDiv.innerHTML = '<img src="' + news.image + '" alt="" style="width:100%;height:300px;object-fit:cover;">';
+      } else {
+        imgDiv.innerHTML = '<div style="width:100%;height:300px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff6b35,#ffc107);"><i class="bi bi-newspaper" style="font-size:80px;color:white;opacity:0.5;"></i></div>';
+      }
+      
+      document.getElementById('newsModalDate').innerHTML = '<i class="bi bi-calendar3 me-1"></i>' + (news.date ? new Date(news.date).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) : '');
+      document.getElementById('newsModalTitle').textContent = news.title;
+      document.getElementById('newsModalContent').textContent = news.content;
+      
+      overlay.style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeNewsModal() {
+      document.getElementById('newsModalOverlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeNewsModal();
+    });
+  </script>
   <?php endif; ?>
   
   <!-- Testimonials Section -->

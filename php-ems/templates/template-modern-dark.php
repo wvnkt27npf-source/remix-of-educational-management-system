@@ -2974,12 +2974,16 @@ require_once __DIR__ . '/partials/data-loader.php';
         </div>
         
         <div class="news-grid">
-          <?php foreach (array_slice($newsArticles, 0, 3) as $news): ?>
-          <div class="news-card" data-scroll>
+          <?php foreach ($newsArticles as $index => $news): 
+            if ($news['status'] !== 'published') continue;
+          ?>
+          <div class="news-card" data-scroll onclick="openNewsModal(<?= $index ?>)" style="cursor: pointer;">
             <?php if (!empty($news['image'])): ?>
               <img src="<?= e($news['image']) ?>" alt="<?= e($news['title']) ?>" class="news-card-image">
             <?php else: ?>
-              <div class="news-card-image"></div>
+              <div class="news-card-image" style="display: flex; align-items: center; justify-content: center;">
+                <i class="bi bi-newspaper" style="font-size: 48px; color: var(--primary); opacity: 0.3;"></i>
+              </div>
             <?php endif; ?>
             <div class="news-card-body">
               <div class="news-card-date">
@@ -2987,13 +2991,70 @@ require_once __DIR__ . '/partials/data-loader.php';
                 <?= e(!empty($news['date']) ? date('M d, Y', strtotime($news['date'])) : '') ?>
               </div>
               <h4><?= e($news['title']) ?></h4>
-              <p><?= e(substr(strip_tags($news['content']), 0, 100)) ?>...</p>
+              <p><?= e(substr(strip_tags($news['content']), 0, 150)) ?>...</p>
+              <span class="news-read-more" style="color: var(--primary); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;">
+                Read More <i class="bi bi-arrow-right"></i>
+              </span>
             </div>
           </div>
           <?php endforeach; ?>
         </div>
       </div>
     </section>
+    
+    <!-- News Modal -->
+    <div class="news-modal-overlay" id="newsModalOverlay" onclick="closeNewsModal()" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 9999; padding: 20px; overflow-y: auto;">
+      <div class="news-modal" onclick="event.stopPropagation()" style="max-width: 850px; margin: 40px auto; background: white; border-radius: 24px; overflow: hidden; animation: newsModalFadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+        <button onclick="closeNewsModal()" style="position: absolute; top: 15px; right: 15px; background: linear-gradient(145deg, var(--primary), var(--secondary)); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 10; box-shadow: var(--shadow-primary);">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        <div id="newsModalImage" style="width: 100%; height: 320px; object-fit: cover; background: linear-gradient(145deg, var(--primary-light), #fff5f0);"></div>
+        <div style="padding: 40px;">
+          <div id="newsModalDate" style="color: var(--primary); font-weight: 600; font-size: 0.9rem; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"></div>
+          <h3 id="newsModalTitle" style="font-size: 2rem; margin-bottom: 25px; color: var(--dark); line-height: 1.3;"></h3>
+          <div id="newsModalContent" style="color: var(--text); line-height: 2; font-size: 1.05rem; white-space: pre-line;"></div>
+        </div>
+      </div>
+    </div>
+    
+    <style>
+      @keyframes newsModalFadeIn { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      .news-modal { position: relative; }
+    </style>
+    
+    <script>
+      const newsData = <?= json_encode(array_values(array_filter($newsArticles, function($n) { return $n['status'] === 'published'; }))) ?>;
+      
+      function openNewsModal(index) {
+        const news = newsData[index];
+        if (!news) return;
+        
+        const overlay = document.getElementById('newsModalOverlay');
+        const imgDiv = document.getElementById('newsModalImage');
+        
+        if (news.image) {
+          imgDiv.innerHTML = '<img src="' + news.image + '" alt="" style="width:100%;height:320px;object-fit:cover;">';
+        } else {
+          imgDiv.innerHTML = '<div style="width:100%;height:320px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#e6f0ff,#fff5f0);"><i class="bi bi-newspaper" style="font-size:80px;color:#0052cc;opacity:0.2;"></i></div>';
+        }
+        
+        document.getElementById('newsModalDate').innerHTML = '<i class="bi bi-calendar3"></i> ' + (news.date ? new Date(news.date).toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'}) : '');
+        document.getElementById('newsModalTitle').textContent = news.title;
+        document.getElementById('newsModalContent').textContent = news.content;
+        
+        overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function closeNewsModal() {
+        document.getElementById('newsModalOverlay').style.display = 'none';
+        document.body.style.overflow = '';
+      }
+      
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeNewsModal();
+      });
+    </script>
     <?php endif; ?>
     
     <!-- Testimonials Section -->
