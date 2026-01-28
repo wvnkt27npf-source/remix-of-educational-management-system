@@ -33,13 +33,20 @@ require_once __DIR__ . '/partials/data-loader.php';
     }
     
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; overflow-x: hidden; }
     
     body {
       font-family: 'Sora', sans-serif;
       background: var(--dark);
       color: var(--white);
       line-height: 1.8;
+      overflow-x: hidden;
+      max-width: 100vw;
+    }
+    
+    /* Slider adjustment for hero section */
+    .hero-slider-wrapper + .hero-tech {
+      padding-top: 80px;
     }
     
     h1, h2, h3 { font-weight: 700; letter-spacing: -0.02em; }
