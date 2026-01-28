@@ -942,6 +942,9 @@ require_once __DIR__ . '/partials/data-loader.php';
       </div>
     </nav>
     
+    <!-- Hero Banner Slider (if enabled) -->
+    <?php include __DIR__ . '/partials/hero-slider.php'; ?>
+    
     <!-- Hero Section - Summer Vacation Style -->
     <section class="hero-summer">
       <div class="sun-decoration"></div>

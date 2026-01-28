@@ -70,18 +70,16 @@ foreach ($allTestimonials as $t) {
 }
 $testimonials = array_slice($testimonials, 0, 6);
 
-// Load hero banners (active only, respecting date range)
+// Check if hero slider is enabled
+$heroSliderEnabled = getSetting('hero_slider_enabled', '0') === '1';
+
+// Load hero banners (active only with images)
 $heroBanners = csv_read_all(DATA_PATH . '/hero_banners.csv');
-$today = date('Y-m-d');
 $activeBanners = array();
 foreach ($heroBanners as $b) {
     $isActive = isset($b['is_active']) && $b['is_active'] === '1';
-    if (!$isActive) continue;
-    
-    $startOk = empty($b['start_date']) || $b['start_date'] <= $today;
-    $endOk = empty($b['end_date']) || $b['end_date'] >= $today;
-    
-    if ($startOk && $endOk) {
+    $hasImage = !empty($b['image']);
+    if ($isActive && $hasImage) {
         $activeBanners[] = $b;
     }
 }
