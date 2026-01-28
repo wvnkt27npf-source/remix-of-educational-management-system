@@ -722,6 +722,9 @@ require_once __DIR__ . '/partials/data-loader.php';
     </div>
   </nav>
   
+  <!-- Hero Banner Slider (if enabled) -->
+  <?php include __DIR__ . '/partials/hero-slider.php'; ?>
+  
   <!-- Hero Section - Achievement Showcase -->
   <section class="hero-achievement">
     <div class="container">
