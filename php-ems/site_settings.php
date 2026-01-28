@@ -176,8 +176,18 @@ $groups = [
 ];
 
 $settingsByGroup = [];
+// Only include settings that belong to known groups and have valid keys
+$knownKeys = array_column($defaultSettings, 'key');
 foreach ($settings as $s) {
+    // Skip settings that aren't in our default list (cleanup old/invalid entries)
+    if (!in_array($s['key'], $knownKeys, true)) {
+        continue;
+    }
     $group = $s['group'] ?? 'basic';
+    // Only add to known groups
+    if (!isset($groups[$group])) {
+        $group = 'basic';
+    }
     if (!isset($settingsByGroup[$group])) {
         $settingsByGroup[$group] = [];
     }
@@ -201,12 +211,28 @@ $content = function () use ($groups, $settingsByGroup) {
   .settings-header i { font-size: 1.2rem; color: var(--brand); }
   .settings-header h5 { margin: 0; font-size: 1rem; font-weight: 600; }
   .settings-body { padding: 20px; }
-  .color-preview {
-    width: 40px;
-    height: 40px;
+  .settings-field { margin-bottom: 1rem; }
+  .settings-field .form-label {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+  .settings-field .form-control {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    color: var(--text);
     border-radius: 8px;
-    border: 2px solid rgba(255,255,255,.2);
-    cursor: pointer;
+    padding: 10px 14px;
+  }
+  .settings-field .form-control:focus {
+    background: rgba(255,255,255,.08);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(92,124,250,.15);
+  }
+  .settings-field .form-control::placeholder {
+    color: var(--text-muted);
   }
   .nav-pills .nav-link {
     color: var(--text);
@@ -216,6 +242,7 @@ $content = function () use ($groups, $settingsByGroup) {
     display: flex;
     align-items: center;
     gap: 10px;
+    font-size: 0.9rem;
   }
   .nav-pills .nav-link:hover { background: rgba(255,255,255,.05); }
   .nav-pills .nav-link.active { background: rgba(92,124,250,.2); color: var(--brand); }
@@ -249,6 +276,10 @@ $content = function () use ($groups, $settingsByGroup) {
     color: var(--text-muted);
     word-break: break-all;
     margin-top: 8px;
+  }
+  .form-check-input:checked {
+    background-color: var(--brand);
+    border-color: var(--brand);
   }
 </style>
 
@@ -287,126 +318,139 @@ $content = function () use ($groups, $settingsByGroup) {
           </div>
           <div class="settings-body">
             <div class="row g-3">
-              <?php if (isset($settingsByGroup[$groupKey])): ?>
+              <?php if (isset($settingsByGroup[$groupKey]) && !empty($settingsByGroup[$groupKey])): ?>
                 <?php foreach ($settingsByGroup[$groupKey] as $setting): ?>
-                  <div class="<?= in_array($setting['type'], ['textarea', 'image']) ? 'col-12' : 'col-md-6' ?>">
-                    <label class="form-label"><?= e($setting['label']) ?></label>
-                    
-                    <?php if ($setting['type'] === 'textarea'): ?>
-                      <textarea class="form-control" name="setting_<?= e($setting['key']) ?>" rows="3"><?= e($setting['value']) ?></textarea>
-                    
-                    <?php elseif ($setting['type'] === 'checkbox'): ?>
-                      <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" name="setting_<?= e($setting['key']) ?>" value="1" <?= $setting['value'] === '1' ? 'checked' : '' ?>>
-                        <label class="form-check-label">Enabled</label>
-                      </div>
-                    
-                    <?php elseif ($setting['type'] === 'template_select'): ?>
-                      <?php
-                      $templates = [
-                          'modern-dark' => [
-                              'name' => 'Admission Focus', 
-                              'desc' => 'Clean light design with admission CTA', 
-                              'preview' => 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
-                              'icon' => '🎓',
-                              'accent' => '#1a4d8f'
-                          ],
-                          'classic-elegant' => [
-                              'name' => 'Festival Celebration', 
-                              'desc' => 'Warm festive design with cultural theme', 
-                              'preview' => 'linear-gradient(135deg, #7c1034 0%, #b91c47 50%, #e8447a 100%)',
-                              'icon' => '🎉',
-                              'accent' => '#ffd700'
-                          ],
-                          'vibrant-colorful' => [
-                              'name' => 'Summer Vacation', 
-                              'desc' => 'Fun playful design for primary schools', 
-                              'preview' => 'linear-gradient(135deg, #00b4d8 0%, #0096c7 50%, #48cae4 100%)',
-                              'icon' => '☀️',
-                              'accent' => '#ffeb3b'
-                          ],
-                          'minimal-clean' => [
-                              'name' => 'Achievement Showcase', 
-                              'desc' => 'Minimal elegant for prestigious schools', 
-                              'preview' => 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%)',
-                              'icon' => '🏆',
-                              'accent' => '#111827'
-                          ],
-                          'bold-geometric' => [
-                              'name' => 'New Session Welcome', 
-                              'desc' => 'Modern tech-forward geometric', 
-                              'preview' => 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
-                              'icon' => '🚀',
-                              'accent' => '#8b5cf6'
-                          ],
-                      ];
-                      ?>
-                      <div class="row g-3">
-                        <?php foreach ($templates as $key => $tpl): ?>
-                        <div class="col-6 col-md-4 col-xl">
-                          <label class="template-card <?= $setting['value'] === $key ? 'active' : '' ?>" style="cursor:pointer;display:block;border:2px solid <?= $setting['value'] === $key ? 'var(--brand)' : 'rgba(255,255,255,.1)' ?>;border-radius:16px;padding:12px;text-align:center;transition:all 0.3s;background:rgba(255,255,255,.02);">
-                            <input type="radio" name="setting_<?= e($setting['key']) ?>" value="<?= e($key) ?>" <?= $setting['value'] === $key ? 'checked' : '' ?> style="display:none;">
-                            <div style="width:100%;height:70px;background:<?= $tpl['preview'] ?>;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
-                              <span style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));"><?= $tpl['icon'] ?></span>
-                              <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:<?= $tpl['accent'] ?>;"></div>
-                            </div>
-                            <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;"><?= e($tpl['name']) ?></div>
-                            <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.3;"><?= e($tpl['desc']) ?></div>
-                            <?php if ($setting['value'] === $key): ?>
-                            <span class="badge bg-success mt-2" style="font-size:0.65rem;">Active</span>
-                            <?php endif; ?>
+                  <div class="<?= in_array($setting['type'], ['textarea', 'image', 'template_select']) ? 'col-12' : 'col-md-6' ?>">
+                    <div class="settings-field">
+                      <label class="form-label">
+                        <i class="bi bi-dot text-primary me-1"></i>
+                        <?= e($setting['label'] ?? ucwords(str_replace('_', ' ', $setting['key']))) ?>
+                      </label>
+                      
+                      <?php if ($setting['type'] === 'textarea'): ?>
+                        <textarea class="form-control" name="setting_<?= e($setting['key']) ?>" rows="3" placeholder="Enter <?= e(strtolower($setting['label'] ?? $setting['key'])) ?>..."><?= e($setting['value']) ?></textarea>
+                      
+                      <?php elseif ($setting['type'] === 'checkbox'): ?>
+                        <div class="form-check form-switch mt-2">
+                          <input class="form-check-input" type="checkbox" id="check_<?= e($setting['key']) ?>" name="setting_<?= e($setting['key']) ?>" value="1" <?= $setting['value'] === '1' ? 'checked' : '' ?>>
+                          <label class="form-check-label" for="check_<?= e($setting['key']) ?>">
+                            <?= $setting['value'] === '1' ? 'Enabled' : 'Disabled' ?>
                           </label>
                         </div>
-                        <?php endforeach; ?>
-                      </div>
-                      <script>
-                      document.querySelectorAll('.template-card input[type="radio"]').forEach(function(radio) {
-                        radio.addEventListener('change', function() {
-                          document.querySelectorAll('.template-card').forEach(function(card) {
-                            card.style.borderColor = 'rgba(255,255,255,.1)';
-                            card.classList.remove('active');
-                            var badge = card.querySelector('.badge');
-                            if (badge) badge.remove();
-                          });
-                          if (this.checked) {
-                            this.closest('.template-card').style.borderColor = 'var(--brand)';
-                            this.closest('.template-card').classList.add('active');
-                          }
-                        });
-                      });
-                      </script>
-                    
-                    <?php elseif ($setting['type'] === 'color'): ?>
-                      <?php // Color type deprecated - skip rendering ?>
-                    
-                    <?php elseif ($setting['type'] === 'image'): ?>
-                      <div class="row align-items-start g-3">
-                        <div class="col-md-6">
-                          <div class="image-upload-wrapper">
-                            <?php if (!empty($setting['value'])): ?>
-                              <img src="<?= e($setting['value']) ?>" alt="Preview" class="image-preview">
-                            <?php else: ?>
-                              <i class="bi bi-cloud-upload fs-2 text-muted mb-2 d-block"></i>
-                            <?php endif; ?>
-                            <div class="text-muted small">Click or drag to upload</div>
-                            <div class="text-muted" style="font-size:0.7rem;">JPG, PNG, GIF, WEBP (max 5MB)</div>
-                            <input type="file" name="upload_<?= e($setting['key']) ?>" accept="image/jpeg,image/png,image/gif,image/webp">
+                      
+                      <?php elseif ($setting['type'] === 'template_select'): ?>
+                        <?php
+                        $templates = [
+                            'modern-dark' => [
+                                'name' => 'Admission Focus', 
+                                'desc' => 'Clean light design with admission CTA', 
+                                'preview' => 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)',
+                                'icon' => '🎓',
+                                'accent' => '#1a4d8f'
+                            ],
+                            'classic-elegant' => [
+                                'name' => 'Festival Celebration', 
+                                'desc' => 'Warm festive design with cultural theme', 
+                                'preview' => 'linear-gradient(135deg, #7c1034 0%, #b91c47 50%, #e8447a 100%)',
+                                'icon' => '🎉',
+                                'accent' => '#ffd700'
+                            ],
+                            'vibrant-colorful' => [
+                                'name' => 'Summer Vacation', 
+                                'desc' => 'Fun playful design for primary schools', 
+                                'preview' => 'linear-gradient(135deg, #00b4d8 0%, #0096c7 50%, #48cae4 100%)',
+                                'icon' => '☀️',
+                                'accent' => '#ffeb3b'
+                            ],
+                            'minimal-clean' => [
+                                'name' => 'Achievement Showcase', 
+                                'desc' => 'Minimal elegant for prestigious schools', 
+                                'preview' => 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 50%, #e5e7eb 100%)',
+                                'icon' => '🏆',
+                                'accent' => '#111827'
+                            ],
+                            'bold-geometric' => [
+                                'name' => 'New Session Welcome', 
+                                'desc' => 'Modern tech-forward geometric', 
+                                'preview' => 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
+                                'icon' => '🚀',
+                                'accent' => '#8b5cf6'
+                            ],
+                        ];
+                        ?>
+                        <div class="row g-3 mt-2">
+                          <?php foreach ($templates as $key => $tpl): ?>
+                          <div class="col-6 col-md-4 col-xl">
+                            <label class="template-card <?= $setting['value'] === $key ? 'active' : '' ?>" style="cursor:pointer;display:block;border:2px solid <?= $setting['value'] === $key ? 'var(--brand)' : 'rgba(255,255,255,.1)' ?>;border-radius:16px;padding:12px;text-align:center;transition:all 0.3s;background:rgba(255,255,255,.02);">
+                              <input type="radio" name="setting_<?= e($setting['key']) ?>" value="<?= e($key) ?>" <?= $setting['value'] === $key ? 'checked' : '' ?> style="display:none;">
+                              <div style="width:100%;height:70px;background:<?= $tpl['preview'] ?>;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+                                <span style="font-size:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));"><?= $tpl['icon'] ?></span>
+                                <div style="position:absolute;bottom:0;left:0;right:0;height:4px;background:<?= $tpl['accent'] ?>;"></div>
+                              </div>
+                              <div style="font-weight:600;font-size:0.85rem;margin-bottom:4px;"><?= e($tpl['name']) ?></div>
+                              <div style="font-size:0.7rem;color:var(--text-muted);line-height:1.3;"><?= e($tpl['desc']) ?></div>
+                              <?php if ($setting['value'] === $key): ?>
+                              <span class="badge bg-success mt-2" style="font-size:0.65rem;">Active</span>
+                              <?php endif; ?>
+                            </label>
                           </div>
-                          <?php if (!empty($setting['value'])): ?>
-                            <div class="current-url">Current: <?= e($setting['value']) ?></div>
-                          <?php endif; ?>
+                          <?php endforeach; ?>
                         </div>
-                        <div class="col-md-6">
-                          <label class="form-label small text-muted">Or enter URL:</label>
-                          <input type="text" class="form-control" name="setting_<?= e($setting['key']) ?>" value="<?= e($setting['value']) ?>" placeholder="https://...">
+                        <script>
+                        document.querySelectorAll('.template-card input[type="radio"]').forEach(function(radio) {
+                          radio.addEventListener('change', function() {
+                            document.querySelectorAll('.template-card').forEach(function(card) {
+                              card.style.borderColor = 'rgba(255,255,255,.1)';
+                              card.classList.remove('active');
+                              var badge = card.querySelector('.badge');
+                              if (badge) badge.remove();
+                            });
+                            if (this.checked) {
+                              this.closest('.template-card').style.borderColor = 'var(--brand)';
+                              this.closest('.template-card').classList.add('active');
+                            }
+                          });
+                        });
+                        </script>
+                      
+                      <?php elseif ($setting['type'] === 'color'): ?>
+                        <?php // Color type deprecated - skip rendering ?>
+                      
+                      <?php elseif ($setting['type'] === 'image'): ?>
+                        <div class="row align-items-start g-3 mt-1">
+                          <div class="col-md-6">
+                            <div class="image-upload-wrapper">
+                              <?php if (!empty($setting['value'])): ?>
+                                <img src="<?= e($setting['value']) ?>" alt="Preview" class="image-preview">
+                              <?php else: ?>
+                                <i class="bi bi-cloud-upload fs-2 text-muted mb-2 d-block"></i>
+                              <?php endif; ?>
+                              <div class="text-muted small">Click or drag to upload</div>
+                              <div class="text-muted" style="font-size:0.7rem;">JPG, PNG, GIF, WEBP (max 5MB)</div>
+                              <input type="file" name="upload_<?= e($setting['key']) ?>" accept="image/jpeg,image/png,image/gif,image/webp">
+                            </div>
+                            <?php if (!empty($setting['value'])): ?>
+                              <div class="current-url">Current: <?= e(strlen($setting['value']) > 50 ? substr($setting['value'], 0, 50) . '...' : $setting['value']) ?></div>
+                            <?php endif; ?>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small text-muted">Or enter URL:</label>
+                            <input type="text" class="form-control" name="setting_<?= e($setting['key']) ?>" value="<?= e($setting['value']) ?>" placeholder="https://...">
+                          </div>
                         </div>
-                      </div>
-                    
-                    <?php else: ?>
-                      <input type="text" class="form-control" name="setting_<?= e($setting['key']) ?>" value="<?= e($setting['value']) ?>">
-                    <?php endif; ?>
+                      
+                      <?php else: ?>
+                        <input type="text" class="form-control" name="setting_<?= e($setting['key']) ?>" value="<?= e($setting['value']) ?>" placeholder="Enter <?= e(strtolower($setting['label'] ?? $setting['key'])) ?>...">
+                      <?php endif; ?>
+                    </div>
                   </div>
                 <?php endforeach; ?>
+              <?php else: ?>
+                <div class="col-12">
+                  <div class="text-muted text-center py-4">
+                    <i class="bi bi-info-circle me-2"></i>No settings in this section
+                  </div>
+                </div>
               <?php endif; ?>
             </div>
           </div>
